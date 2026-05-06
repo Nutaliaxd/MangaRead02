@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Gallery - The Free Doujinshi, Manga and Image Gallery System</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: "Verdana", sans-serif;
+  font-size: 12px;
+  background: #DCDAD0;
+  color: #000;
+}
+
+/* NAV BAR */
+#nb {
+  background: #34353A;
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0;
+  user-select: none;
+}
+#nb > div {
+  display: inline-block;
+}
+#nb > div > a {
+  display: block;
+  padding: 6px 12px;
+  color: #C0BEA8;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: bold;
+}
+#nb > div > a:hover {
+  background: #4A4B52;
+  color: #fff;
+}
+
+/* MAIN WRAPPER */
+.ido {
+  max-width: 1370px;
+  margin: 0 auto;
+  padding: 0 4px;
+}
+
+/* TOP PANE / SEARCH */
+#toppane {
+  padding: 6px 0;
+}
+
+.ih { display: none; }
+
+#searchbox {
+  background: #F2F0E4;
+  border: 1px solid #C0BEA8;
+  padding: 8px;
+  margin-bottom: 4px;
+}
+
+.itc {
+  margin-bottom: 6px;
+  border-collapse: collapse;
+}
+.itc td { padding: 2px 3px; }
+
+/* Category buttons */
+.cs {
+  display: inline-block;
+  padding: 2px 6px;
+  border: 1px solid #888;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: bold;
+  color: #fff;
+  user-select: none;
+  white-space: nowrap;
+}
+.cs.disabled { opacity: 0.35; }
+
+.ct1  { background: #676B69; border-color: #585B59; } /* Misc */
+.ct2  { background: #9E4040; border-color: #8A3838; } /* Doujinshi */
+.ct3  { background: #5B70A4; border-color: #4E6090; } /* Manga */
+.ct4  { background: #738B4A; border-color: #637A3E; } /* Artist CG */
+.ct5  { background: #6B6B9B; border-color: #5D5D8A; } /* Game CG */
+.ct6  { background: #9E7540; border-color: #8A6636; } /* Image Set */
+.ct7  { background: #9E4074; border-color: #8A3866; } /* Cosplay */
+.ct8  { background: #4A3F8A; border-color: #3D3478; } /* Asian Porn */
+.ct9  { background: #4A6B6B; border-color: #3E5D5D; } /* Non-H */
+.cta  { background: #5B5B5B; border-color: #4A4A4A; } /* Western */
+
+/* Search input row */
+#searchbox input[type="text"] {
+  width: 400px;
+  padding: 3px 5px;
+  border: 1px solid #A0A09A;
+  font-size: 12px;
+  margin-right: 4px;
+}
+#searchbox input[type="submit"],
+#searchbox input[type="button"] {
+  padding: 3px 10px;
+  cursor: pointer;
+  font-size: 11px;
+  border: 1px solid #888;
+  background: #D0CEC4;
+}
+#searchbox input[type="submit"]:hover,
+#searchbox input[type="button"]:hover {
+  background: #BEBCB0;
+}
+
+.adv-link {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #555;
+}
+.adv-link a { color: #555; text-decoration: none; }
+.adv-link a:hover { text-decoration: underline; }
+
+/* RESULT / NAV BAR */
+.searchtext {
+  padding: 4px 0;
+  font-size: 11px;
+  color: #444;
+}
+
+.searchnav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+  font-size: 12px;
+}
+.searchnav a, .searchnav span {
+  padding: 2px 6px;
+  border: 1px solid #B0AEA2;
+  background: #E8E6DA;
+  text-decoration: none;
+  color: #000;
+  cursor: pointer;
+}
+.searchnav span { color: #999; cursor: default; }
+.searchnav a:hover { background: #D8D6CA; }
+
+.searchnav select {
+  padding: 2px;
+  font-size: 11px;
+  border: 1px solid #B0AEA2;
+  background: #E8E6DA;
+  margin-left: auto;
+}
+
+/* GALLERY GRID */
+.itg.gld {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+}
+
+@media screen and (max-width: 1360px) { .itg.gld { grid-template-columns: repeat(4, 1fr); } }
+@media screen and (max-width: 1090px) { .itg.gld { grid-template-columns: repeat(3, 1fr); } }
+@media screen and (max-width: 820px)  { .itg.gld { grid-template-columns: repeat(2, 1fr); } }
+@media screen and (max-width: 550px)  { .itg.gld { grid-template-columns: repeat(1, 1fr); } }
+
+/* Alternating row colors */
+.gl1t:nth-child(odd)  { background: #F2F0E4; }
+.gl1t:nth-child(even) { background: #EDEBDF; }
+
+.gl1t {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #D0CEC4;
+  min-width: 0;
+  position: relative;
+}
+
+/* Gallery title bar */
+.gl4t {
+  padding: 4px 6px;
+  font-size: 11px;
+  line-height: 1.3;
+  color: #00E;
+  text-decoration: none;
+  display: block;
+  min-height: 32px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.gl4t:hover { text-decoration: underline; }
+
+/* Thumbnail container */
+.gl3t {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #000;
+  width: 100%;
+  height: 250px;
+}
+.gl3t img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.gl3t a { display: block; width: 100%; height: 100%; }
+
+/* Bottom info bar */
+.gl5t {
+  padding: 3px 6px;
+  font-size: 10px;
+}
+.gl5t > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.glnew { color: #888; font-size: 10px; }
+
+/* Star rating */
+.ir {
+  width: 75px;
+  height: 9px;
+  background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEsAAAAJCAYAAABEMZHgAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3gsOBCEtEaHNugAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAAjElEQVRIx2NgGAU0BgYGBn9/f4b///8zMDAwMNCCWlhYmCkrK9vl4OBgTk1NTWXo7u5mampqZhgfH89QVlbGUF9fz1BZWclQUFDAUFJSwpCfn89QWFjIkJ+fz5CXl8eQm5vLkJOTw5CdnZ1BS0uLQU9PT6a3t5elp6eHJT09PaO3t5eFpbePpbOzs2Xn7u6GAACkURBpNQ1QHQAAAABJRU5ErkJggg==') repeat-x;
+  display: inline-block;
+  position: relative;
+}
+
+.gldown img { width: 10px; height: 10px; vertical-align: middle; }
+
+/* New badge */
+.gl1t[data-new="1"] .gl4t { color: #008800; }
+
+/* Tags row */
+.gl6t {
+  padding: 2px 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.gt {
+  font-size: 10px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  cursor: default;
+  color: #fff;
+}
+
+/* PAGE NAV */
+.dp {
+  text-align: center;
+  padding: 10px;
+  font-size: 11px;
+  color: #666;
+  border-top: 1px solid #C0BEA8;
+  margin-top: 8px;
+}
+.dp a { color: #555; margin: 0 6px; text-decoration: none; }
+.dp a:hover { text-decoration: underline; }
+
+/* CATEGORY FILTER ACTIVE STATE */
+.cs.active { opacity: 1; }
+.cs.inactive { opacity: 0.35; }
+
+/* NO COVER placeholder */
+.no-cover {
+  width: 100%;
+  height: 250px;
+  background: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ccc;
+  font-size: 10px;
+}
+</style>
+</head>
+<body>
+
+<!-- NAV BAR -->
+<div id="nb">
+  <div><a href="index.html">Front Page</a></div>
+  <div><a href="#">Popular</a></div>
+  <div><a href="#">Favorites</a></div>
+  <div><a href="admin.html" style="color:#F4C46A">⚙ Manage</a></div>
+</div>
+
+<!-- MAIN -->
+<div class="ido">
+  <div id="toppane">
+    <h1 class="ih">My Gallery: The Free Doujinshi, Manga and Image Gallery System</h1>
+
+    <div id="searchbox">
+      <table class="itc">
+        <tr>
+          <td><div class="cs ct2" data-cat="Doujinshi" onclick="toggleCat(this)">Doujinshi</div></td>
+          <td><div class="cs ct3" data-cat="Manga" onclick="toggleCat(this)">Manga</div></td>
+          <td><div class="cs ct4" data-cat="Artist CG" onclick="toggleCat(this)">Artist CG</div></td>
+          <td><div class="cs ct5" data-cat="Game CG" onclick="toggleCat(this)">Game CG</div></td>
+          <td><div class="cs cta" data-cat="Western" onclick="toggleCat(this)">Western</div></td>
+        </tr>
+        <tr>
+          <td><div class="cs ct9" data-cat="Non-H" onclick="toggleCat(this)">Non-H</div></td>
+          <td><div class="cs ct6" data-cat="Image Set" onclick="toggleCat(this)">Image Set</div></td>
+          <td><div class="cs ct7" data-cat="Cosplay" onclick="toggleCat(this)">Cosplay</div></td>
+          <td><div class="cs ct8" data-cat="Asian Porn" onclick="toggleCat(this)">Asian Porn</div></td>
+          <td><div class="cs ct1" data-cat="Misc" onclick="toggleCat(this)">Misc</div></td>
+        </tr>
+      </table>
+      <div>
+        <input type="text" id="f_search" placeholder="Search Keywords" size="60" maxlength="200" oninput="filterGallery()" />
+        <input type="button" value="Search" onclick="filterGallery()" />
+        <input type="button" value="Clear" onclick="clearSearch()" />
+      </div>
+      <div class="adv-link">
+        [<a href="#">Show Advanced Options</a>]
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="searchtext"><p id="result-count">Loading galleries...</p></div>
+
+    <div class="searchnav">
+      <span>&lt;&lt; First</span>
+      <span>&lt; Prev</span>
+      <span>Jump/Seek</span>
+      <span>Next &gt;</span>
+      <span>Last &gt;&gt;</span>
+      <select onchange="changeView(this.value)">
+        <option value="thumbnail" selected>Thumbnail</option>
+        <option value="compact">Compact</option>
+      </select>
+    </div>
+
+    <!-- GALLERY GRID -->
+    <div class="itg gld" id="gallery-grid">
+      <!-- Dynamically populated -->
+    </div>
+
+    <div class="searchnav" style="margin-top:4px">
+      <span>&lt;&lt; First</span>
+      <span>&lt; Prev</span>
+      <span>Jump/Seek</span>
+      <span>Next &gt;</span>
+      <span>Last &gt;&gt;</span>
+    </div>
+  </div>
+</div>
+
+<div class="dp">
+  <a href="index.html">Front</a>
+</div>
+
+<script>
+// ============================================================
+// MANGA LIST — loaded from localStorage (managed via admin.html)
+// Fallback default list if nothing is saved yet
+// ============================================================
+const DEFAULT_MANGA_LIST = [
+  "example-manga-1",
+  "example-manga-2",
+  "example-manga-3",
+];
+
+function getSavedList() {
+  try {
+    const raw = localStorage.getItem("manga_list");
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return DEFAULT_MANGA_LIST;
+}
+
+const MANGA_LIST = getSavedList();
+
+// ============================================================
+// Category CSS class map
+const CAT_CLASS = {
+  "Misc":       "ct1",
+  "Doujinshi":  "ct2",
+  "Manga":      "ct3",
+  "Artist CG":  "ct4",
+  "Game CG":    "ct5",
+  "Image Set":  "ct6",
+  "Cosplay":    "ct7",
+  "Asian Porn": "ct8",
+  "Non-H":      "ct9",
+  "Western":    "cta",
+};
+
+// Star rating helper
+function ratingStyle(r) {
+  // r is 0–5; we have a 75px wide sprite, each star = 15px
+  const filled = Math.round(r / 5 * 75);
+  return `width:${filled}px;height:9px;background:#EAD000;display:inline-block;vertical-align:middle;`;
+}
+
+// Active filter state
+let activeCategories = new Set(); // empty = show all
+let searchText = "";
+
+function toggleCat(el) {
+  const cat = el.dataset.cat;
+  if (activeCategories.has(cat)) {
+    activeCategories.delete(cat);
+    el.classList.remove("inactive");
+  } else {
+    activeCategories.add(cat);
+    // Mark all as inactive, selected as active
+    document.querySelectorAll(".cs[data-cat]").forEach(b => b.classList.add("inactive"));
+    [...activeCategories].forEach(c => {
+      document.querySelector(`.cs[data-cat="${c}"]`).classList.remove("inactive");
+    });
+  }
+  if (activeCategories.size === 0) {
+    document.querySelectorAll(".cs[data-cat]").forEach(b => b.classList.remove("inactive"));
+  }
+  renderGallery();
+}
+
+function filterGallery() {
+  searchText = document.getElementById("f_search").value.toLowerCase();
+  renderGallery();
+}
+
+function clearSearch() {
+  document.getElementById("f_search").value = "";
+  searchText = "";
+  activeCategories.clear();
+  document.querySelectorAll(".cs[data-cat]").forEach(b => b.classList.remove("inactive"));
+  renderGallery();
+}
+
+// All loaded gallery data
+let allGalleries = [];
+
+async function loadGalleries() {
+  const results = [];
+  for (const folder of MANGA_LIST) {
+    try {
+      const resp = await fetch(`manga/${folder}/info.json`);
+      if (!resp.ok) throw new Error("no info.json");
+      const info = await resp.json();
+      results.push({ folder, ...info });
+    } catch {
+      // Fallback: use folder name as title
+      results.push({
+        folder,
+        title: folder.replace(/-/g, " "),
+        category: "Misc",
+        pages: "?",
+        rating: 0,
+        posted: "",
+        cover: "1.jpg"
+      });
+    }
+  }
+  allGalleries = results;
+  renderGallery();
+}
+
+function renderGallery() {
+  const grid = document.getElementById("gallery-grid");
+  grid.innerHTML = "";
+
+  const filtered = allGalleries.filter(g => {
+    const catMatch = activeCategories.size === 0 || activeCategories.has(g.category);
+    const textMatch = !searchText || g.title.toLowerCase().includes(searchText);
+    return catMatch && textMatch;
+  });
+
+  document.getElementById("result-count").textContent =
+    `Found ${filtered.length} result${filtered.length !== 1 ? "s" : ""}.`;
+
+  filtered.forEach(g => {
+    const catClass = CAT_CLASS[g.category] || "ct1";
+    const coverSrc = `manga/${g.folder}/${g.cover || "1.jpg"}`;
+    const viewerHref = `viewer.html?manga=${encodeURIComponent(g.folder)}`;
+
+    const card = document.createElement("div");
+    card.className = "gl1t";
+
+    // Star rating bar (simple colored bar since no sprite)
+    const starFill = Math.round((g.rating / 5) * 75);
+    const starEmpty = 75 - starFill;
+
+    card.innerHTML = `
+      <a href="${viewerHref}">
+        <div class="gl4t glname glink">${escHtml(g.title)}</div>
+      </a>
+      <div class="gl3t">
+        <a href="${viewerHref}">
+          <img
+            src="${coverSrc}"
+            alt="${escHtml(g.title)}"
+            title="${escHtml(g.title)}"
+            onerror="this.parentElement.parentElement.innerHTML='<div class=no-cover>No Cover</div>'"
+          />
+        </a>
+      </div>
+      <div class="gl5t">
+        <div>
+          <div class="cs ${catClass}" style="cursor:default">${escHtml(g.category)}</div>
+          <div class="glnew">${escHtml(g.posted)}</div>
+        </div>
+        <div>
+          <span style="display:inline-flex;gap:0;vertical-align:middle">
+            <span style="width:${starFill}px;height:10px;background:#EAD000;display:inline-block;border:1px solid #C8B800;border-right:none"></span>
+            <span style="width:${starEmpty}px;height:10px;background:#DDD;display:inline-block;border:1px solid #BBB;border-left:none"></span>
+          </span>
+          <span style="margin-left:4px">${g.pages} pages</span>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function escHtml(str) {
+  return String(str ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function changeView(v) { /* future: compact mode */ }
+
+loadGalleries();
+</script>
+</body>
+</html>
